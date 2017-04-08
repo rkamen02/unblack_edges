@@ -1,0 +1,165 @@
+/*fuck you Sam*/
+
+/*
+ * sudoku.c
+ * by Sameul Weaver (swerve69) and Ross Kamen (rkamen02)
+ * September 27, 2016
+ * HW2
+ *
+ * Implementation 
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <pnmrdr.h>
+#include <math.h>
+#include "uarray2.h"
+
+int check_sudoku(Pnmrdr_T rdr);
+int check_row(UArray2_T sudoku, int row);
+int check_col(UArray2_T sudoku, int col);
+int check_box(UArray2_T sudoku, int x, int y);
+int check_vect( int vect[]);
+
+int main( int argc, char *argv[])
+{
+       	assert(argc <= 2);
+
+	FILE *f = NULL;
+	Pnmrdr_T rdr;
+	int width, height, denominator;
+	int answer;
+
+        if (argc == 2){
+		// command line
+		f = fopen( argv[1], "rb");
+       		assert( f != NULL);
+	} else {
+		// std input
+		f = stdin;
+	}
+
+	rdr = Pnmrdr_new(f);
+
+	assert( Pnmrdr_data(rdr).type == Pnmrdr_gray);
+
+	width = Pnmrdr_data(rdr).width;
+       	height = Pnmrdr_data(rdr).height;
+	denominator = Pnmrdr_data(rdr).denominator;
+	assert( (width == 9) && (height == 9) && (denominator == 9));
+
+	answer = check_sudoku(rdr);
+
+	Pnmrdr_free(&rdr);
+	fclose(f);
+
+	printf("end: %d\n", answer);
+	return answer;
+}
+
+int check_sudoku(Pnmrdr_T rdr)
+{
+
+	UArray2_T sudoku;
+	int value;
+	int *valuep;
+	int results = 0;
+	int x, y;
+
+	sudoku = UArray2_new(9,9,sizeof(int));
+
+	for (int i = 0; i < 9; i++){
+		for (int j = 0; j < 9; j++){
+			value = Pnmrdr_get(rdr);
+			printf("%d ", value);
+			assert( (value > 0) && (value <= 9) );
+			valuep = (int *)UArray2_at( sudoku, i, j);
+			*valuep = value;
+		}
+	}
+
+	printf("\n");
+
+	for (int i = 0; i < 9; i++){
+		x = floor( i / 3 );
+		y = i - (3 * x);
+		x *= 3;
+		y *= 3;
+	        results += check_box( sudoku, x, y);
+
+		results += check_row( sudoku, i);
+		results += check_col( sudoku, i);
+
+	}
+
+	if (results != 27) {
+		return 1;
+	}
+	return 0;
+
+}
+
+int check_row( UArray2_T sudoku, int i)
+{
+	int vect[9];
+	int *valuep;
+	for (int x = 0; x < 9; x++){
+		valuep = (int *)UArray2_at( sudoku, i, x);
+		vect[ x] = *valuep;
+	}
+
+	printf("check_row: ");
+
+	return( check_vect( vect));
+
+}
+
+int check_col( UArray2_T sudoku, int i)
+{
+	int vect[9];
+	int *valuep;
+	for (int y = 0; y < 9; y++){
+		valuep = (int *)UArray2_at( sudoku, y, i);
+		vect[ y] = *valuep;
+	}
+	printf("check_col: ");
+
+	return( check_vect( vect));
+
+}
+
+int check_box( UArray2_T sudoku, int x, int y)
+{
+	int vect[9];
+	int *valuep;
+	int index = 0;
+	for (int row = x; row < (x+3); row++){
+		for (int col = y; col < (y+3); col++){
+			valuep = (int *)UArray2_at( sudoku, col, row);
+			vect[index] = *valuep;
+			index++;
+		}
+	}
+	printf("check_box: ");
+	return( check_vect( vect));
+
+}
+
+int check_vect( int vect[])
+{
+
+	for (int i = 0; i < 9; i++){
+	       	assert( (vect[i] > 0) && (vect[i] <= 9) );
+		for (int j = (i + 1); j < 9; j++){
+			if ( vect[i] == vect[j] ){
+				printf("0\n");
+				return 0;
+			}
+		}
+	}
+
+	printf("1\n");
+	return 1;
+
+}

@@ -1,0 +1,211 @@
+Samuel Weaver (sweave05) and Ross Kamen (rkamen02)
+September 21, 2016
+HW 2
+
+DESIGN Document
+
+
+
+UArray2_T
+
+1. 
+        We are trying to represent a homogenous two dimensional array that 
+can hold whatever the user gives it. It will also be able to retrieve elements
+within itself, add new elements, and otherwise access, set, and edit its
+held data. We will call it an unboxed array of two dimensions or UArray2_T. 
+
+2.
+        We will have these functions (below, we will be referring to a pointer
+        to a UArray2_T as T):
+
+int UArray2_width( T t);
+        returns the width of t. t must have been constructed
+int UArray2_height( T t);
+        returns the height of t. t must have been constructed
+int UArray2_size( T t);
+        returns the size, in memory, of an element in t. t must have 
+        been constructed.
+UArray2_T UArray2_new( int w, int h, int size);
+        initializes a new T of width w, height h, and slots sizes of size 
+        size. w and h must be greater than zero. 
+void *UArray2_at( UArray2_T t, int x, int y);
+        Returns a pointer to the element stored at the coordinate (x,y).
+        t must have been constructed and (x,y) must be in its bounds. 
+void UArray2_free( T *t);
+        frees the UArray2_T at t and all of the elements stored in it. *t must
+        have been constructed.
+void UArray2_map_col_major( T t, 
+                            void apply( int x,
+                                        int y,
+                                        T t,
+                                        void *v,
+                                        void *cl),
+                            void *cl);
+        iterates through t, applying apply to each element and going down a 
+        collumn before proceeding to the next one. Passes the given void *cl
+        as a parameter into apply as its void *cl. Also feeds apply the 
+        element being iterated on's x coordinate, y coordinate, T, and pointer
+        to the element. t must have been constructed. 
+void UArray2_map_row_major( T t,
+                            void apply( int x,
+                                        int y,
+                                        T t,
+                                        void *v,
+                                        void *cl),
+                            void *cl);
+        iterates through t, applying apply to each element and going down a
+        row before proceeding to the next one. Passes the void void *cl
+        as a parameter into apply as its void *cl. Also feeds apply the
+        element being iterated on's x coordinate, y coordinate, T, and pointer
+        to the element. t must have constructed.
+
+4.
+        We will use a single instance of Hanson's UArray to represent 
+UArray2_T. Invariants include the facts that:
+        - The element the user believes is stored at (x,y) is actually stored
+                at [ x * H + y ]. Where [] is subsetting the 
+                Hanson array and H is the UArray2_T's height.
+        - The corners are defined by (0,0), (W-1, 0), (0, H-1), 
+                and (W-1, H-1). Which are the locations, in the 1D array, 
+                [ 0], [ W * H - H], [ H - 1], and [ W * H - 1].
+        - W and H are greater than zero.
+
+
+
+Bit2_T
+        
+1.
+        We are trying to represent a two dimensional array of bits that will be
+to get, set, and edit its data. We will call it a bit array of two dimensions,
+Bit2_T.
+
+2.
+
+        We will have these functions (below, we will be referring to a pointer
+        to a Bit2_T as Bit2_T):
+
+int Bit2_count( Bit2_T array );
+        Returns the number of 1s stored in the given Bit2_T. Bit2_T must
+        have been constructed.
+
+int Bit2_get(   Bit2_T array, int x, int y );
+        Returns the value in Bit2_T at the given coordinate. Bit2_T must have
+        been constructed. x and y must be greater than or equal to 0. x must 
+        be less than Bit2_T's width and y must be less than Bit2_T's height. 
+
+int Bit2_height(Bit2_T array );
+        Returns the height of the given Bit2_T. Bit2_T must have been 
+        constructed
+
+int Bit2_put( Bit2_T array, int x, int y, int v );
+        Sets the bit at the given coordinate in the given Bit2_T to 
+        the given value. Returns the previously held value at (x, y). (x, y) 
+        must be in bounds and Bit2_T must have been constructed.
+
+int Bit2_width( Bit2_T array );
+        Returns the width of the given Bit2_T. Bit2_T must have been 
+        constructed.
+
+Bit2 Bit2_new( int w, int h );
+        Allocates space for and creates a new Bit2_T of the given dimensions.
+        w and h must be greater than zero.
+
+void Bit2_clear( Bit2_T array, int x, int y);
+        Sets the bit at the given coordinate in the given Bit2_T to 0. (x,y)
+        must be in bounds and Bit2_T must be constructed.
+
+void Bit2_clear_box( Bit2_T array, int x1, int y1, int x2, int y2 );
+        Sets all of the bits in the box defined with the corners (x1, y1)
+        and (x2, y2) to 0. Either coordinate may define any of the corners.
+        (x1, y1) and (x2, y2) must be in bounds, Bit2_T must have 
+        been constructed.
+
+void Bit2_free( Bit2_T array );
+        Frees all of the memory allocated for and in the given Bit2_T. Bit2_T
+        must have been constructed.
+
+void Bit2_map_col_major( Bit2_T array, 
+                         void apply(    int x, 
+                                        int y, 
+                                        Bit2_T array, 
+                                        int v, 
+                                        void *cl ), 
+                         void *cl );
+        Applies the given function to every bit in the given Bit2_T. Iterates
+        down a collumn before moving to the next one. Feeds the given *cl into
+        the given apply function as a parameter. During iteration, feeds apply
+        the Bit under iteration's x coordinate, y coordinate, parent Bit2_T,
+        and value. Bit2_T must have been constructed.
+
+void Bit2_map_row_major( Bit2_T array, 
+                         void apply(    int x, 
+                                        int y, 
+                                        Bit2_T array, 
+                                        int v, 
+                                        void *cl ), 
+                         void *cl );
+        Applies the given function to every bit in the given Bit2_T. Iterates
+        down a row before moving to the next one. Feeds the given *cl into
+        the given apply function as a parameter. During iteration, feeds apply
+        the Bit under iteration's x coordinate, y coordinate, parent Bit2_T,
+        and value. Bit2_T must have been constructed.
+
+void Bit2_not( Bit2_T array, int x, int y );
+        Sets the bit at the given coordinate in the given Bit2_T 
+        to its opposite. (x, y) must be in bounds and Bit2_T must have been
+        intialized. 0 is the opposite of 1, 1 is the opposite of 0.
+ 
+void Bit2_not_box( Bit2_T array, int x1, int y1, int x2, int y2 );
+        Sets all of the bits in the box defined with the corners (x1, y1)
+        and (x2, y2) to their opposites. Either coordinate may define 
+        any of the corners. Both coordinates must be in the bounds of Bit2_T
+        and Bit2_T must have been constructed. 0 is the opposite of 1, 1 is 
+        the opposite of 0.
+
+void Bit2_put_box( Bit2_T array, int x1, int y2, int x2, int y2, int v );
+        Sets all of the bits in the box defined with the corners (x1, y1)
+        and (x2, y2) to the given value. Either coordinates may define 
+        any of the corners. Both coordinates must be in the bounds of Bit2_T
+        and Bit2_T must have been constructed.
+
+void Bit2_set( Bit2_T array, int x, int y );
+        Sets the bit at the given cordinate in the given Bit2_T to 1. (x, y)
+        must be in bounds and Bit2_T must have been constructed.
+
+void Bit2_set_box( Bit2_T array, int x1, int y2, int x2, int y2 );
+        Sets all of the bits in the box defined with the corners (x1, y1)
+        and (x2, y2) to 1. Either coordinates may define any of the corners. 
+        Both coordinates must be in the bounds of Bit2_T and Bit2_T must 
+        have been constructed.
+
+int Bit2_index( Bit2_T array, int x, int y );
+        Returns the index that the given coordinate has in the Bit2_T. 
+        Indexes Bit2_T such that (0, 10) would be at index [ 9]. (1,1) would 
+        be at index [0]. Bit2_T must have been constructed and (x,y) must be
+        in its bounds.
+
+void Bit2_assert( Bit2_T array, int x, int y);
+        Throws a CRE if (x,y) is not in the bounds of array or if array
+        has not been intialized.
+
+void Bit2_box_mod( Bit2_T array, int x1, int y1, int x2, int y2, int v);
+        If v is 0 or 1, sets all of the bits in array in the box defined by the
+        two given corners (x1, y1), (x2, y2) to v. If v is -1, sets all of 
+        the bits
+        in array in the box defined by the two given corners (x1, y1), (x2, y2
+        to the opposite of their value. Both coordinates must be in the bounds
+        of array.  Either coordinate may define any of the corners.
+
+4.
+        We will use a single instance of Hanson's Bit_T to represent 
+Bit2_T. Invariants include the facts that:
+        - The element the user believes is stored at (x,y) is actually stored
+                at [ x * H + y ]. Where [] is subsetting the 
+                Hanson array and H is the Bit2_T's height.
+        - The corners are defined by (0,0), (W-1, 0), (0, H-1), 
+                and (W-1, H-1). Which are the locations, in the 1D array, 
+                [ 0], [ W * H - H], [ H - 1], and [ W * H - 1].
+        - Every value stored in Bit2_T is either 0 or 1. 
+        - W and H are greater than zero.
+
+

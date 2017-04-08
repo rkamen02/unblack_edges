@@ -1,0 +1,465 @@
+/*
+ * bit2.c
+ * by Samuel Weaver (sweave05) and Ross Kamen (rkamen02)
+ * September 27, 2016
+ * HW2
+ * 
+ * Implementation for the Bit2_T functions.
+ *
+ */
+
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include "bit2.h"
+
+
+
+/***            STRUCTURE DEFINTION                     */
+
+struct Bit2_T {
+        int *width;
+        int *height;
+        Bit_T *array;
+
+};
+
+
+
+/***            HELPER FUNCTIONS                        */
+
+int  Bit2_index( Bit2_T array, int x, int y );
+void Bit2_assert_array( Bit2_T array );
+void Bit2_assert_coords( Bit2_T array, int x, int y);
+void Bit2_box_mod( Bit2_T array, int x1, int y1, int x2, int y2, int control);
+
+/*
+ * index
+ *      purp: converts an (x,y) coordinate to its index in the array 
+ *              (x * H + y)
+ *      args: Bit2_T array, int x coord, int y coord
+ *      rets: int index
+ */
+int Bit2_index( Bit2_T array, int x, int y )
+{
+        Bit2_assert_array(array);
+        Bit2_assert_coords( array, x, y);
+
+        int height = Bit2_height( array);
+        
+        return (height * x) + y;
+}
+
+/*
+ * assert_array
+ *      purp: makes sure the array exists and was properly malloc'd
+ *      args: Bit2_T array
+ *      rets: none
+ */
+void Bit2_assert_array( Bit2_T array )
+{
+        assert( array != NULL );
+        assert( sizeof(array) == sizeof(Bit2_T));
+        assert( sizeof(*array) == sizeof(struct Bit2_T));
+}
+
+/*
+ * assert_coords
+ *      purp: makes sure the (x,y) coordinate is in the bounds of the array
+ *      args: Bit2_T array, int x coordinate, int y coordinate
+ *      rets: none
+ */
+void Bit2_assert_coords( Bit2_T array, int x, int y)
+{
+        Bit2_assert_array(array);
+        assert( (x >= 0) && (y >= 0));          
+
+        int width = Bit2_width( array);
+        int height = Bit2_height( array);
+        
+        assert( ( width > 0 ) && ( height > 0 ));
+        assert( (x < width) && (y < height));
+}
+
+/*
+ * box_mod
+ *      purp: sets all bits in an area to the control value 
+ *              (if control is -1, box_mod sets each bit to its opposite)
+ *      args: Bit2_T array, int x coord 1, int y coord 1, 
+ *              int x coord 2, int y coord 2, int control
+ *      rets: none
+ */
+void Bit2_box_mod( Bit2_T array, 
+                        int x1, 
+                        int y1, 
+                        int x2, 
+                        int y2, 
+                        int control)
+{
+        Bit2_assert_array(array);
+        assert( (control == -1) || (control == 0) || (control == 1));
+        Bit2_assert_coords( array, x1, y1);
+        Bit2_assert_coords( array, x2, y2);
+
+        int index;
+        int xiter = 1;
+        int xdiff = x2 - x1;
+        int yiter = 1;
+        int ydiff = y2 - y1;
+
+        /* 
+         * xiter and yiter determine the directions of each iteration
+         * allows user to input the (x,y) corners in any order
+         */
+
+        /* only enters if we are changing more than one row */
+        if( xdiff != 0){
+                /* dividing by abs gives either 1 or -1 */
+                /* -1 means iterating backwards */
+                xiter = xdiff / abs( xdiff);
+        }
+        
+        /* only enters if we are changing more than one column */
+        if( ydiff != 0){
+                /* dividing by abs gives either 1 or -1 */
+                /* -1 means iterating backwards */
+                yiter = ydiff / abs( ydiff);
+        }
+        
+        /* Stops the iterating when x2 is passed */
+        for( int x = x1; x != (x2 + xiter); x += xiter){
+                /* Stops the iterating when x2 is passed */
+                for( int y = y1; y != (y2 + yiter); y += yiter){
+                        
+                        index = Bit2_index( array, x, y);
+                        
+                        if ( (control == 0) || (control == 1)){
+                                Bit_put( *(array -> array), index, control);
+                        
+                        /* if control is -1, set the bit to its opposite */
+                        } else {
+                                Bit_not( *(array -> array), index, index);
+                        }
+                }
+        } 
+}
+
+
+
+/***            PUBLIC FUNCTIONS                        */
+
+
+
+/*
+ * count
+ *      purp: returns the sum of all bits in the array
+ *      args: a Bit2_T array
+ *      rets: int
+ */
+int Bit2_count( Bit2_T array )
+{
+        Bit2_assert_array(array);
+        
+        int width = Bit2_width( array);
+        int height = Bit2_height( array);
+        int count = 0;
+        int val;
+
+        /* loop through array and sum values */
+        for( int x = 0; x < width; x ++){
+                for( int y = 0; y < height; y ++){
+                        val = Bit2_get( array, x, y);
+                        
+                        if ( val != 0 ) {
+                                count++;
+                        }
+                }
+        }
+        
+        return count;
+}
+
+/*
+ * get
+ *      purp: returns the bit value at a certain coordinate
+ *      args: Bit2_T array, int x coord, int y coord
+ *      rets: int
+ */
+int Bit2_get( Bit2_T array, int x, int y )
+{
+        Bit2_assert_array(array);
+        Bit2_assert_coords( array, x, y);
+
+        int index = Bit2_index( array, x, y);
+        int val = Bit_get( *(array -> array), index);
+        
+        return val;
+}
+
+/*
+ * height
+ *      purp: returns the height of the array
+ *      args: Bit2_T array
+ *      rets: int
+ */
+int Bit2_height(Bit2_T array )
+{
+        Bit2_assert_array(array);
+        
+        return *(array -> height);
+}
+
+/*
+ * put
+ *      purp: puts a desired value (1 or 0) at a specified coordinate
+ *      args: Bit2_T array, int x coord, int y coord, int value
+ *      rets: previous value
+ */
+int Bit2_put( Bit2_T array, int x, int y, int val )
+{
+        assert( (val == 0) || (val == 1));
+        Bit2_assert_array(array);
+        Bit2_assert_coords( array, x, y);
+        
+        int index = Bit2_index( array, x, y);
+        int pre_val = Bit_put( *(array -> array), index, val);
+        return pre_val;
+}
+
+/*
+ * width
+ *      purp: returns the width of the array
+ *      args: Bit2_T array
+ *      rets: int width
+ */
+int Bit2_width( Bit2_T array )
+{
+        Bit2_assert_array(array);
+        
+        return *(array -> width);
+}
+
+/*
+ * new
+ *      purp: initializes a new Bit2_T array
+ *      args: int width, int height
+ *      rets: Bit2_T array
+ */
+Bit2_T Bit2_new( int width, int height )
+{
+        assert( (width > 0) && (height > 0));
+
+        int length = width * height;
+        Bit_T temp_bit_1D = Bit_new( length );
+        Bit2_T temp_bit_2D = malloc( sizeof( struct Bit2_T));
+                
+        assert( temp_bit_2D != NULL);
+        
+        /* malloc space for the data in the Bit2_T struct */
+        temp_bit_2D -> width = malloc(sizeof( int));
+        temp_bit_2D -> height = malloc(sizeof( int));
+        temp_bit_2D -> array = malloc(sizeof( temp_bit_1D));
+        
+        assert( temp_bit_2D -> width != NULL);
+        assert( temp_bit_2D -> height != NULL);
+        assert( temp_bit_2D -> array != NULL);
+        
+        *(temp_bit_2D -> width) = width;
+        *(temp_bit_2D -> height) = height;
+        *(temp_bit_2D -> array) = temp_bit_1D;
+
+        return temp_bit_2D;
+}
+
+/*
+ * clear
+ *      purp: sets a specified bit to 0
+ *      args: Bit2_T array, int x coord, int y coord
+ *      rets: none
+ */
+void Bit2_clear( Bit2_T array, int x, int y)
+{
+        Bit2_assert_array(array);
+        Bit2_assert_coords( array, x, y);
+
+        Bit2_box_mod( array, x, y, x, y, 0);
+}
+
+/*
+ * clear_box
+ *      purp: sets each bit in a specified box to 0
+ *      args: Bit2_T array, int x coord 1, int y coord 1,
+ *              int x coord 2, int y coord 2
+ *      rets: none
+ */
+void Bit2_clear_box( Bit2_T array, int x1, int y1, int x2, int y2 )
+{
+        Bit2_assert_array(array);
+        Bit2_assert_coords( array, x1, y1);
+        Bit2_assert_coords( array, x2, y2);
+
+        Bit2_box_mod( array, x1, y1, x2, y2, 0);
+}
+
+/*
+ * free
+ *      purp: deallocates memory for a Bit2_T array
+ *      args: Bit2_T array
+ *      rets: none
+ */
+void Bit2_free( Bit2_T *array )
+{
+        Bit2_assert_array(*array);
+
+        /* free width and height */
+        free( (*array) -> width);
+        free( (*array) -> height);
+
+        /* free Hanson's array */
+        Bit_free( (*array) -> array);
+        free( (*array) -> array);
+
+        /* free pointer to Bit2_T struct */
+        free( *array);
+}
+
+/*
+ * map_col_major
+ *      purp: iterates through the array up each consecutive column
+ *      args: Bit2_T array, 
+ *              apply function (int x coord, int, Bit2_T array, int, void*),
+ *              void *
+ *      rets: none
+ */
+void Bit2_map_col_major( Bit2_T array, 
+                         void apply(    int x, 
+                                        int y, 
+                                        Bit2_T array, 
+                                        int val, 
+                                        void *cl ), 
+                         void *cl )
+{
+        Bit2_assert_array(array);
+
+        int width = Bit2_width(array);
+        int height = Bit2_height(array);
+        int current_val;
+
+        for (int x = 0; x < width; x++){
+                for (int y = 0; y < height; y++){
+                        current_val = Bit2_get( array, x, y);
+                        apply(x, y, array, current_val, cl);
+                }
+        }
+
+}
+
+/*
+ * map_row_major
+ *      purp: iterates through the array down each consecutive row
+ *      args: Bit2_T array, 
+ *              apply function (int x coord, int, Bit2_T array, int, void*),
+ *              void *
+ *      rets: none
+ */
+void Bit2_map_row_major( Bit2_T array, 
+                         void apply(    int x, 
+                                        int y, 
+                                        Bit2_T array, 
+                                        int val, 
+                                        void *cl ), 
+                         void *cl )
+{
+        Bit2_assert_array(array);
+
+        int width = Bit2_width(array);
+        int height = Bit2_height(array);
+        int current_val;
+
+        for (int y = 0; y < height; y++){
+                for (int x = 0; x < width; x++){
+                        current_val = Bit2_get( array, x, y);
+                        apply(x, y, array, current_val, cl);
+                }
+        }
+}
+
+/*
+ * not
+ *      purp: set bit to its opposite (0 to 1, 1 to 0)
+ *      args: Bit2_T array, int x coord, int y coord
+ *      rets: none
+ */
+void Bit2_not( Bit2_T array, int x, int y )
+{
+        Bit2_assert_coords( array, x, y);
+
+        Bit2_box_mod( array, x, y, x, y, -1);
+}
+
+/*
+ * not_box
+ *      purp: set specified box of bits to their opposites (0 to 1, 1 to 0)
+ *      args: Bit2_T array, int x coord 1, int y coord 1, 
+ *              int x coord 2, int y coord 2
+ *      rets: none
+ */
+void Bit2_not_box( Bit2_T array, int x1, int y1, int x2, int y2 )
+{
+        Bit2_assert_array(array);
+        Bit2_assert_coords( array, x1, y1);
+        Bit2_assert_coords( array, x2, y2);
+
+        Bit2_box_mod( array, x1, y1, x2, y2, -1);
+}
+
+/*
+ * put_box
+ *      purp: sets specified box of bits to v (only allows 1 or 0)
+ *      args: Bit2_T array, int x coord 1, 
+ *              int y coord 1, int x coord 2, int y coord 2, int v
+ *      rets: none
+ */
+void Bit2_put_box( Bit2_T array, int x1, int y1, int x2, int y2, int v )
+{
+        Bit2_assert_array(array);
+        assert( (v == 0) || (v == 1));
+        Bit2_assert_coords( array, x1, y1);
+        Bit2_assert_coords( array, x2, y2);
+
+        Bit2_box_mod( array, x1, y1, x2, y2, v);
+}
+
+/*
+ * set
+ *      purp: sets specified bit to 1
+ *      args: Bit2_T array, int x coord, int y coord
+ *      rets: none
+ */
+void Bit2_set( Bit2_T array, int x, int y )
+{
+        Bit2_assert_array(array);
+        Bit2_assert_coords( array, x, y);
+
+        Bit2_box_mod( array, x, y, x, y, 1);
+}
+
+/*
+ * set_box
+ *      purp: sets box of bits to 1
+ *      args: Bit2_T array, int x coord 1, 
+ *              int y coord 1, int x coord 2, int y coord 2
+ *      rets: none
+ */
+void Bit2_set_box( Bit2_T array, int x1, int y1, int x2, int y2 )
+{
+        Bit2_assert_array(array);
+        Bit2_assert_coords( array, x1, y1);
+        Bit2_assert_coords( array, x2, y2);
+
+        Bit2_box_mod( array, x1, y1, x2, y2, 1);
+}
+
+
+
+

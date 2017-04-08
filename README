@@ -1,0 +1,16 @@
+README
+by Samuel Weaver (sweave05) and Ross Kamen (rkamen02)
+September 27, 2016
+HW 2
+
+The README document.
+
+The TAs and Professor helped us a lot, we bounced a few ideas around with
+Tucker Jaenicke but nothing specific.
+
+To the best of our knowledge, everything has been implemented correctly. To 
+parallel Hanson's Bit_T interface in which he allowed the user modify 
+multiple bits at once and  "not" bits, we have included indetical (in practice)
+functions in our interace. 
+
+We spent approximately 26 hours on this project.

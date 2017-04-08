@@ -1,0 +1,13 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include "uarray2.h"
+
+int main() {
+
+	UArray2_T t;
+	t = UArray2_new(5,5,sizeof(int));
+
+	(void) t;
+
+	return EXIT_SUCCESS;
+}

@@ -1,0 +1,20 @@
+TECHNIQUE
+Samuel Weaver (sweave05) and Ross Kamen (rkamen02)
+September 27, 2016
+HW 2
+
+TECHNIQUE Document
+
+One technique that we started using this term was planning out what functions
+we will use before actually writing any code.
+
+To do this, explicitly write out what your overall program needs to do and
+thoroughly think about how to achieve this overarching goal while conforming
+to all standards and specifications. Then, think about how you will do this
+by breaking the solution into steps. These steps should all be individual
+functions. Think about what these functions will take and return and how these
+functions will interact with each other. This will easily enable you not 
+only to spot issues in your logic but also to write prettier code that is
+easier to read and understand. This plan is much less prone to error than
+writing down all of the code and then breaking it into functions later. Being
+proactive will save you lots of time in spotting errors.
